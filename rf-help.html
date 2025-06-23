@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RF Help Tool - RF Buddy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f9fafb; }
+    header { background: #1e3a8a; color: white; padding: 20px; text-align: center; }
+    #map { height: 600px; width: 100%; }
+    .info-box {
+      background: white; padding: 10px; border-radius: 5px;
+      box-shadow: 0 0 5px #ccc; margin: 20px;
+    }
+    h2 { color: #1e3a8a; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>📍 RF Map Tool</h1>
+  <p>Select a site on the map to view KPIs and optimization suggestions.</p>
+</header>
+
+<div id="map"></div>
+<div class="info-box" id="siteInfo"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([26.9124, 75.7873], 12);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  const sites = [
+    { id: "INDJPR1200", lat: 26.8713, lon: 75.7391, rsrp: -95, sinr: 16, cqi: 12, prb: 72, dl: 55, ul: 14, pci: 308 },
+    { id: "INDJPR1201", lat: 26.9411, lon: 75.8077, rsrp: -101, sinr: 12.5, cqi: 10, prb: 80, dl: 45, ul: 12, pci: 310 },
+    { id: "INDJPR1202", lat: 26.8910, lon: 75.7763, rsrp: -87, sinr: 21, cqi: 14, prb: 60, dl: 75, ul: 20, pci: 320 },
+    { id: "INDJPR1203", lat: 26.8819, lon: 75.8345, rsrp: -109, sinr: 9, cqi: 8, prb: 90, dl: 30, ul: 9, pci: 315 }
+    // ➕ You can add more here up to 25
+  ];
+
+  function generateSuggestions(site) {
+    let suggestions = [];
+    if (site.rsrp < -100) suggestions.push("🔧 Improve coverage: consider boosters or antenna tilt adjustment.");
+    if (site.sinr < 12) suggestions.push("⚠️ High interference: optimize neighbor list or frequency reuse.");
+    if (site.cqi < 10) suggestions.push("📶 Poor channel quality: investigate user devices and interference.");
+    if (site.prb > 85) suggestions.push("📈 Congestion: consider carrier addition or load balancing.");
+    if (site.dl < 40 || site.ul < 10) suggestions.push("🔌 Throughput low: check for backhaul or scheduling issues.");
+
+    return suggestions.length > 0 ? suggestions : ["✅ Site KPIs look healthy."];
+  }
+
+  sites.forEach(site => {
+    const marker = L.marker([site.lat, site.lon]).addTo(map);
+    marker.on('click', () => {
+      const suggestions = generateSuggestions(site);
+      const info = `
+        <h2>📡 Site: ${site.id}</h2>
+        <p><strong>RSRP:</strong> ${site.rsrp} dBm</p>
+        <p><strong>SINR:</strong> ${site.sinr} dB</p>
+        <p><strong>CQI:</strong> ${site.cqi}</p>
+        <p><strong>PRB Util:</strong> ${site.prb}%</p>
+        <p><strong>DL TP:</strong> ${site.dl} Mbps</p>
+        <p><strong>UL TP:</strong> ${site.ul} Mbps</p>
+        <p><strong>PCI:</strong> ${site.pci}</p>
+        <h3>Suggestions:</h3>
+        <ul>${suggestions.map(s => `<li>${s}</li>`).join("")}</ul>
+      `;
+      document.getElementById('siteInfo').innerHTML = info;
+    });
+  });
+</script>
+</body>
+</html>
