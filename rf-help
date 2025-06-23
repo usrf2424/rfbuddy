@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RF Help Tool - RF Buddy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9fafb; margin: 0; }
+    header { background: #1e3a8a; color: white; padding: 20px; text-align: center; }
+    #map { height: 600px; }
+    .info-box { background: white; padding: 15px; margin: 10px auto; width: 90%; max-width: 850px; border-radius: 5px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+    h2 { color: #1e3a8a; }
+    ul { padding-left: 20px; }
+    #searchBar { margin: 15px auto; text-align: center; }
+    #searchInput { padding: 8px; width: 300px; border: 1px solid #ccc; border-radius: 4px; }
+    canvas { width: 100%; height: 50px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>📍 RF Help Tool</h1>
+  <p>Select a site from the map or search by Site ID.</p>
+</header>
+
+<div id="searchBar">
+  <input type="text" id="searchInput" placeholder="Enter Site ID (e.g. INDJPR1201)" />
+</div>
+
+<div id="map"></div>
+<div class="info-box" id="siteInfo"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([26.9124, 75.7873], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  const sites = [
+    {
+      id: "INDJPR1200", lat: 26.8783, lon: 75.7458, rsrp: -110, sinr: 9.5, cqi: 7, prb: 80, dl: 30, ul: 10, pci: 320,
+      trend: {
+        rsrp: [-112, -111, -110, -109, -111, -112, -110, -111, -113, -110],
+        sinr: [9.2, 9.6, 9.3, 9.8, 9.1, 9.5, 9.4, 9.6, 9.7, 9.3],
+        prb: [79, 80, 82, 81, 80, 79, 78, 80, 81, 80]
+      }
+    },
+    {
+      id: "INDJPR1201", lat: 26.9262, lon: 75.8071, rsrp: -95, sinr: 16.5, cqi: 12, prb: 65, dl: 60, ul: 18, pci: 290,
+      trend: {
+        rsrp: [-95, -94, -96, -95, -93, -94, -95, -96, -95, -94],
+        sinr: [16, 16.2, 16.5, 16.8, 16.3, 16.7, 16.5, 16.6, 16.4, 16.5],
+        prb: [64, 65, 66, 67, 65, 66, 64, 63, 65, 66]
+      }
+    },
+   {
+  "id": "INDJPR1204", "lat": 26.901274, "lon": 75.793824, "rsrp": -103, "sinr": 13.8, "cqi": 11, "prb": 72, "dl": 55, "ul": 14, "pci": 308,
+  "trend": {
+    "rsrp": [109.2, 110.5, 108.9, 110.1, 107.4, 109.8, 108.7, 110.4, 108.6, 109.9],
+    "sinr": [12.8, 13.0, 13.5, 14.2, 13.7, 13.6, 14.0, 13.9, 13.4, 13.1],
+    "prb": [72.3, 73.0, 71.6, 72.1, 71.9, 73.2, 72.7, 72.9, 71.8, 72.5]
+  }
+},
+{
+  "id": "INDJPR1205", "lat": 26.910121, "lon": 75.765401, "rsrp": -97, "sinr": 15.4, "cqi": 13, "prb": 64, "dl": 70, "ul": 18, "pci": 301,
+  "trend": {
+    "rsrp": [97.5, 96.3, 96.8, 97.1, 98.2, 97.7, 96.4, 97.9, 98.0, 97.6],
+    "sinr": [14.9, 15.1, 15.6, 15.0, 15.8, 15.5, 14.7, 15.3, 15.6, 15.2],
+    "prb": [64.1, 63.9, 65.0, 63.7, 64.3, 65.1, 63.8, 64.5, 64.0, 65.3]
+  }
+},
+{
+  "id": "INDJPR1206", "lat": 26.915439, "lon": 75.798300, "rsrp": -100, "sinr": 10.1, "cqi": 9, "prb": 87, "dl": 36, "ul": 12, "pci": 317,
+  "trend": {
+    "rsrp": [101.0, 100.2, 99.7, 100.1, 100.3, 101.4, 100.8, 101.2, 100.0, 101.1],
+    "sinr": [10.0, 10.3, 9.7, 10.2, 9.8, 10.5, 9.9, 10.4, 10.1, 10.2],
+    "prb": [86.9, 87.3, 86.5, 87.8, 88.0, 86.7, 87.1, 88.2, 86.8, 87.5]
+  }
+},
+{
+  "id": "INDJPR1207", "lat": 26.934127, "lon": 75.812000, "rsrp": -91, "sinr": 19.7, "cqi": 14, "prb": 58, "dl": 85, "ul": 22, "pci": 289,
+  "trend": {
+    "rsrp": [91.1, 91.6, 90.8, 92.2, 91.5, 92.0, 90.7, 91.3, 91.9, 91.0],
+    "sinr": [19.5, 19.3, 19.8, 19.9, 20.1, 19.4, 19.6, 19.2, 20.0, 19.7],
+    "prb": [57.8, 58.0, 57.6, 58.4, 58.3, 58.1, 57.5, 58.2, 58.7, 57.9]
+  }
+},
+{
+  "id": "INDJPR1208", "lat": 26.889001, "lon": 75.755121, "rsrp": -113, "sinr": 7.2, "cqi": 8, "prb": 90, "dl": 28, "ul": 9, "pci": 411,
+  "trend": {
+    "rsrp": [112.6, 113.1, 112.2, 113.5, 112.8, 113.0, 112.4, 113.6, 112.7, 113.3],
+    "sinr": [6.9, 7.4, 7.3, 7.0, 7.1, 7.2, 6.8, 7.5, 7.3, 6.9],
+    "prb": [89.8, 90.2, 89.9, 90.4, 90.3, 90.1, 89.6, 90.0, 89.7, 90.5]
+  }
+},
+// ...and so on up to INDJPR1224
+
+  ];
+
+  const getColor = (sinr) => {
+    if (sinr >= 15) return 'green';
+    if (sinr >= 10) return 'orange';
+    return 'red';
+  };
+
+  const getSuggestions = (site) => {
+    const notes = [];
+    if (site.rsrp < -100) notes.push("📉 Weak RSRP: Improve coverage.");
+    if (site.sinr < 12) notes.push("📡 Low SINR: Interference possible.");
+    if (site.cqi < 10) notes.push("⚙️ CQI low: Modulation or interference issue.");
+    if (site.prb > 85) notes.push("📊 High PRB usage: Congestion.");
+    if (site.dl < 20) notes.push("⬇️ DL TP low: Check backhaul.");
+    return notes.length ? notes : ["✅ Site KPIs are within acceptable range."];
+  };
+
+  const drawSparkline = (canvas, data, color) => {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.beginPath();
+    ctx.moveTo(0, h - data[0]);
+    for (let i = 1; i < data.length; i++) {
+      ctx.lineTo((w / (data.length - 1)) * i, h - data[i]);
+    }
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  };
+
+  let markers = [];
+  const renderSiteInfo = (site) => {
+    const suggestions = getSuggestions(site);
+    document.getElementById("siteInfo").innerHTML = `
+      <h2>📡 Site: ${site.id}</h2>
+      <p><strong>RSRP:</strong> ${site.rsrp} dBm</p>
+      <p><strong>SINR:</strong> ${site.sinr} dB</p>
+      <p><strong>CQI:</strong> ${site.cqi}</p>
+      <p><strong>PRB Util:</strong> ${site.prb}%</p>
+      <p><strong>DL TP:</strong> ${site.dl} Mbps</p>
+      <p><strong>UL TP:</strong> ${site.ul} Mbps</p>
+      <p><strong>PCI:</strong> ${site.pci}</p>
+      <h3>📊 KPI Trends</h3>
+      <p>RSRP</p><canvas id="rsrpTrend" width="300" height="40"></canvas>
+      <p>SINR</p><canvas id="sinrTrend" width="300" height="40"></canvas>
+      <p>PRB</p><canvas id="prbTrend" width="300" height="40"></canvas>
+      <h3>🛠 Suggestions:</h3>
+      <ul>${suggestions.map(s => `<li>${s}</li>`).join("")}</ul>
+    `;
+
+    drawSparkline(document.getElementById('rsrpTrend'), site.trend.rsrp, 'blue');
+    drawSparkline(document.getElementById('sinrTrend'), site.trend.sinr, 'green');
+    drawSparkline(document.getElementById('prbTrend'), site.trend.prb, 'orange');
+  };
+
+  sites.forEach(site => {
+    const marker = L.circleMarker([site.lat, site.lon], {
+      color: getColor(site.sinr),
+      radius: 8,
+      fillOpacity: 0.8
+    }).addTo(map);
+    marker.on('click', () => renderSiteInfo(site));
+    markers.push({ id: site.id.toLowerCase(), marker, site });
+  });
+
+  document.getElementById("searchInput").addEventListener("keyup", e => {
+    const q = e.target.value.toLowerCase();
+    const found = markers.find(m => m.id === q);
+    if (found) {
+      map.setView(found.marker.getLatLng(), 14);
+      found.marker.fire("click");
+    }
+  });
+</script>
+</body>
+</html>
